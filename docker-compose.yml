@@ -1,0 +1,49 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: powli-palengke-app
+    container_name: powli_app
+    restart: unless-stopped
+    working_dir: /var/www
+    volumes:
+      - ./:/var/www
+    networks:
+      - powli-network
+
+  webserver:
+    image: nginx:alpine
+    container_name: powli_webserver
+    restart: unless-stopped
+    ports:
+      - "8000:80"
+    volumes:
+      - ./:/var/www
+      - ./docker/nginx/conf.d/:/etc/nginx/conf.d/
+    networks:
+      - powli-network
+
+  db:
+    image: mysql:8.0
+    container_name: powli_db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: powli_palengke
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_USER: powli_user
+      MYSQL_PASSWORD: powli_password
+    ports:
+      - "3307:3306"
+    volumes:
+      - dbdata:/var/lib/mysql
+    networks:
+      - powli-network
+
+networks:
+  powli-network:
+    driver: bridge
+
+volumes:
+  dbdata:
+    driver: local
