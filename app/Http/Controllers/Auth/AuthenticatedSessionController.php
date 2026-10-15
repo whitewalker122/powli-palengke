@@ -33,32 +33,16 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        /** @var \App\Models\User|null $user */
-        $user = Auth::user();
+        $user = $request->user();
 
-        // Safe check para sa role, nag-fa-fallback sa blank string kung null
-        $userRole = strtolower($user->role ?? '');
-
-        // DIREKTA NA SA ADMIN DASHBOARD
-        if ($userRole === 'admin') {
-            return redirect()->route('admin.sellers.pending');
-        }
-
-        // SELLER LOGIC
-        if ($userRole === 'seller') {
-            if (empty($user->store_name)) {
-                return redirect()->route('seller.apply');
-            }
+        // Redirect logic para sa Seller
+        if ($user->role === 'seller') {
             if ($user->application_status === 'pending') {
                 return redirect()->route('seller.waiting');
             }
-            // Kung kailangan pa ng setup (opsyonal)
-            if ($user->application_status === 'approved' && !$user->is_profile_complete) {
-                return redirect()->route('seller.setup'); 
-            }
+            // Pag approved na ang seller, dideretso na sa main dashboard
         }
 
-        // Default redirect kung buyer o tapos na ang lahat ng seller process
         return redirect()->intended(route('dashboard', absolute: false));
     }
 
